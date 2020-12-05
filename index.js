@@ -1,3 +1,12 @@
+// const express = require("express");
+// const app = express();
+
+// app.get("/", function (req, res) {
+//   res.send("Hello World");
+// });
+
+// app.listen(3000);
+
 const argv = require("yargs").argv;
 
 const {
@@ -5,7 +14,7 @@ const {
   getContactById,
   addContact,
   removeContact,
-} = require("./contacts");
+} = require("./api/contacts/contacts.function");
 
 function invokeAction({ action, id, name, email, phone }) {
   switch (action) {
