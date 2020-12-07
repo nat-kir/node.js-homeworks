@@ -6,7 +6,7 @@ contactsRouter.get("/", ContactsControllers.getListContacts);
 
 contactsRouter.get(
   "/:id",
-  ContactsControllers.checkContact,
+  //   ContactsControllers.checkContact,
   ContactsControllers.getById
 );
 contactsRouter.post(
@@ -16,12 +16,12 @@ contactsRouter.post(
 );
 contactsRouter.delete(
   "/:id",
-  ContactsControllers.checkContact,
+  //   ContactsControllers.checkContact,
   ContactsControllers.remove
 );
 contactsRouter.patch(
   "/:id",
-  ContactsControllers.checkContact,
+  //   ContactsControllers.checkContact,
   ContactsControllers.validateContact,
   ContactsControllers.update
 );

@@ -1,20 +1,14 @@
 const Joi = require("joi");
-const {
-  listContacts,
-  getContactById,
-  addContact,
-  removeContact,
-  updateContact,
-} = require("./contacts.function");
+const contactModel = require("./contacts.schema");
 
 module.exports = class ContactsControllers {
   static async getListContacts(req, res, next) {
-    const contactList = await listContacts();
+    const contactList = await contactModel.find({});
     return res.status(200).json(contactList);
   }
 
   static async getById(req, res, next) {
-    const contact = await getContactById(req.params.id);
+    const contact = await contactModel.findOne({ _id: req.params.id });
     if (contact) {
       return res.status(200).json(contact);
     } else {
@@ -23,19 +17,32 @@ module.exports = class ContactsControllers {
   }
 
   static async create(req, res, next) {
-    await addContact(req.body.name, req.body.email, req.body.phone);
-    const contact = await listContacts();
-    return res.status(201).json(contact[contact.length - 1]);
+    const contact = await contactModel.create(req.body);
+    return res.status(201).json(contact);
   }
 
   static async remove(req, res, next) {
-    const contact = await removeContact(req.params.id);
-    return res.status(200).json({ message: "Contact deleted" });
+    const contact = await contactModel.findByIdAndDelete({
+      _id: req.params.id,
+    });
+    if (contact) {
+      return res.status(200).json(contact);
+    } else {
+      return res.status(404).json({ message: "Contact not found" });
+    }
   }
 
   static async update(req, res, next) {
-    await updateContact(req.params.id, req.body);
-    return res.status(200).json(getContactById(req.params.id));
+    const contact = await contactModel.findByIdAndUpdate(
+      { _id: req.params.id },
+      { ...req.body },
+      { new: true }
+    );
+    if (contact) {
+      return res.status(200).json(contact);
+    } else {
+      return res.status(404).json({ message: "Contact not found" });
+    }
   }
 
   static async validateContact(req, res, next) {
@@ -43,6 +50,9 @@ module.exports = class ContactsControllers {
       name: Joi.string().required(),
       email: Joi.string().required(),
       phone: Joi.string().required(),
+      subscription: Joi.string().optional(),
+      password: Joi.string().required(),
+      token: Joi.string().required(),
     });
     const result = contactRules.validate(req.body);
     if (result.error) {
@@ -50,14 +60,14 @@ module.exports = class ContactsControllers {
     }
     next();
   }
-  static async checkContact(req, res, next) {
-    const contacts = await listContacts();
-    const contactIndex = contacts.findIndex(
-      (contact) => contact.id == req.params.id
-    );
-    if (contactIndex === -1) {
-      return res.status(404).json({ message: "Not found contact" });
-    }
-    next();
-  }
+  // static async checkContact(req, res, next) {
+  //   const contacts = await listContacts();
+  //   const contactIndex = contacts.findIndex(
+  //     (contact) => contact.id == req.params.id
+  //   );
+  //   if (contactIndex === -1) {
+  //     return res.status(404).json({ message: "Not found contact" });
+  //   }
+  //   next();
+  // }
 };
