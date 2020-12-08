@@ -52,7 +52,6 @@ module.exports = class ContactsControllers {
       phone: Joi.string().required(),
       subscription: Joi.string().optional(),
       password: Joi.string().required(),
-      token: Joi.string().required(),
     });
     const result = contactRules.validate(req.body);
     if (result.error) {
@@ -60,14 +59,19 @@ module.exports = class ContactsControllers {
     }
     next();
   }
-  // static async checkContact(req, res, next) {
-  //   const contacts = await listContacts();
-  //   const contactIndex = contacts.findIndex(
-  //     (contact) => contact.id == req.params.id
-  //   );
-  //   if (contactIndex === -1) {
-  //     return res.status(404).json({ message: "Not found contact" });
-  //   }
-  //   next();
-  // }
+
+  static async validateUpdateContact(req, res, next) {
+    const contactRules = Joi.object({
+      name: Joi.string().optional(),
+      email: Joi.string().optional(),
+      phone: Joi.string().optional(),
+      subscription: Joi.string().optional(),
+      password: Joi.string().optional(),
+    }).min(1);
+    const result = contactRules.validate(req.body);
+    if (result.error) {
+      return res.status(400).json({ message: "missing data" });
+    }
+    next();
+  }
 };

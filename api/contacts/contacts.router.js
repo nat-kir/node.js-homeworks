@@ -4,25 +4,16 @@ const contactsRouter = express.Router();
 
 contactsRouter.get("/", ContactsControllers.getListContacts);
 
-contactsRouter.get(
-  "/:id",
-  //   ContactsControllers.checkContact,
-  ContactsControllers.getById
-);
+contactsRouter.get("/:id", ContactsControllers.getById);
 contactsRouter.post(
   "/",
   ContactsControllers.validateContact,
   ContactsControllers.create
 );
-contactsRouter.delete(
-  "/:id",
-  //   ContactsControllers.checkContact,
-  ContactsControllers.remove
-);
+contactsRouter.delete("/:id", ContactsControllers.remove);
 contactsRouter.patch(
   "/:id",
-  //   ContactsControllers.checkContact,
-  ContactsControllers.validateContact,
+  ContactsControllers.validateUpdateContact,
   ContactsControllers.update
 );
 
