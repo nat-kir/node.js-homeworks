@@ -3,7 +3,6 @@ const userModel = require("./users.schema");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const bcrypt = require("bcryptjs");
-const SECRET_KEY = process.env.JWT_SECRET_KEY;
 
 module.exports = class UsersControllers {
   static async registration(req, res, next) {
@@ -35,12 +34,23 @@ module.exports = class UsersControllers {
         return res.status(401).send("Password is incorrect, try again ");
       }
 
-      const token = await jwt.sign({ id: user._id }, SECRET_KEY, {
-        expiresIn: "1h",
-      });
+      const token = await jwt.sign(
+        { id: user._id },
+        process.env.JWT_SECRET_KEY,
+        {
+          expiresIn: "1h",
+        }
+      );
 
-      await userModel.findByIdAndUpdate(user._id, token);
-      return res.status(200).json({ token });
+      await userModel.findByIdAndUpdate(user._id, { token: token });
+
+      return res.status(200).json({
+        token: token,
+        user: {
+          email: user.email,
+          subscription: user.subscription,
+        },
+      });
     } catch (err) {
       next(err);
     }
@@ -85,12 +95,13 @@ module.exports = class UsersControllers {
       const token = authorizationHeader.replace("Bearer ", "");
       let userId;
       try {
-        userId = await jwt.verify(token, SECRET_KEY).id;
+        userId = await jwt.verify(token, process.env.JWT_SECRET_KEY).id;
       } catch (err) {
         return res.status(401).json({ message: "Not authorized" });
       }
 
       const user = await userModel.findById(userId);
+
       if (!user || user.token !== token) {
         return res.status(401).json({ message: "Not authorized" });
       }
