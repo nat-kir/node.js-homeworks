@@ -3,6 +3,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 require("dotenv").config();
 const contactsRouter = require("./api/contacts/contacts.router");
+const usersRouter = require("./api/users/users.router");
 const mongoose = require("mongoose");
 
 const PORT = process.env.PORT || 3000;
@@ -26,7 +27,8 @@ class Server {
   }
 
   initRouters() {
-    this.server.use("/", contactsRouter);
+    this.server.use("/contacts", contactsRouter);
+    this.server.use("/users", usersRouter);
   }
 
   async initDB() {
