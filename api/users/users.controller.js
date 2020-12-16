@@ -3,6 +3,8 @@ const userModel = require("./users.schema");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const bcrypt = require("bcryptjs");
+const path = require("path");
+const { сreateAvatar, imageMinify, removeAvatar } = require("./users.helpers");
 
 module.exports = class UsersControllers {
   static async registration(req, res, next) {
@@ -14,7 +16,15 @@ module.exports = class UsersControllers {
       if (existingUser) {
         res.status(409).send("Email in use");
       }
-      const user = await userModel.create({ email, password: passwordHash });
+      await сreateAvatar(email);
+      await imageMinify();
+      await removeAvatar(`${email}.png`);
+
+      const user = await userModel.create({
+        email,
+        avatarURL: `http://localhost:${process.env.PORT}/images/${email}.png`,
+        password: passwordHash,
+      });
       return res.status(201).json(user);
     } catch (err) {
       next(err);
@@ -68,10 +78,13 @@ module.exports = class UsersControllers {
 
   static async getCurrentUser(req, res, next) {
     try {
-      const { id, email, subscription } = req.user;
-      res
-        .status(200)
-        .json({ id: id, email: email, subscription: subscription });
+      const { id, email, subscription, avatarURL } = req.user;
+      res.status(200).json({
+        id: id,
+        email: email,
+        subscription: subscription,
+        avatarURL: avatarURL,
+      });
     } catch (err) {
       next();
     }
@@ -85,6 +98,18 @@ module.exports = class UsersControllers {
     const result = userRules.validate(req.body);
     if (result.error) {
       return res.status(400).json({ message: "missing required field" });
+    }
+    next();
+  }
+  static validateUpdateUser(req, res, next) {
+    const userRules = Joi.object({
+      email: Joi.string().optional(),
+      password: Joi.string().optional(),
+      subscription: Joi.string().optional().valid("free", "pro", "premium"),
+    }).min(1);
+    const result = userRules.validate(req.body);
+    if (result.error) {
+      return res.status(400).json({ message: "is not a valid value" });
     }
     next();
   }
@@ -108,6 +133,49 @@ module.exports = class UsersControllers {
       req.user = user;
       req.token = token;
       next();
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  // Update current user
+  static async updateCurrentUser(req, res, next) {
+    try {
+      const user = await userModel.findByIdAndUpdate(
+        req.params.id,
+        {
+          $set: req.body,
+        },
+        { new: true }
+      );
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      return res.status(200).json({
+        email: user.email,
+        subscription: user.subscription,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+  // Add Avatar
+  static async addAvatar(req, res, next) {
+    try {
+      await imageMinify();
+      await removeAvatar(req.file.filename);
+
+      const user = await userModel.findByIdAndUpdate(
+        req.user.id,
+        {
+          avatarURL: `http://localhost:${process.env.PORT}/images/${req.file.filename}`,
+        },
+        { new: true }
+      );
+
+      return res
+        .status(200)
+        .json({ email: user.email, avatarURL: user.avatarURL });
     } catch (err) {
       next(err);
     }

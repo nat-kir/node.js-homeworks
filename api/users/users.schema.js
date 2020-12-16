@@ -13,6 +13,7 @@ const userSchema = new Schema({
       return re.test(String(value).toLowerCase());
     },
   },
+  avatarURL: { type: String, required: false },
   password: {
     type: String,
     required: [true, "Password is required"],
@@ -20,19 +21,11 @@ const userSchema = new Schema({
   subscription: {
     type: String,
     enum: ["free", "pro", "premium"],
-    message: "this type of sunscription does not exist",
+    message: "this type of subscription does not exist",
     default: "free",
   },
   token: { type: String, required: false, default: null },
 });
-
-// userSchema.methods.setPassword = function (password) {
-//   this.password = bCrypt.hashSync(password, bCrypt.genSaltSync(6));
-// };
-
-// userSchema.methods.validPassword = function (password) {
-//   return bCrypt.compareSync(password, this.password);
-// };
 
 const userModel = mongoose.model("user", userSchema);
 

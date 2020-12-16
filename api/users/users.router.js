@@ -1,6 +1,7 @@
 const express = require("express");
 const UsersControllers = require("./users.controller");
 const usersRouter = express.Router();
+const { upload } = require("./users.helpers");
 
 usersRouter.post(
   "/auth/register",
@@ -21,6 +22,19 @@ usersRouter.get(
   "/current",
   UsersControllers.authorizeUser,
   UsersControllers.getCurrentUser
+);
+usersRouter.patch(
+  "/avatar",
+  UsersControllers.authorizeUser,
+  upload.single("avatar"),
+  UsersControllers.addAvatar
+);
+
+usersRouter.patch(
+  "/:id",
+  UsersControllers.authorizeUser,
+  UsersControllers.validateUpdateUser,
+  UsersControllers.updateCurrentUser
 );
 
 module.exports = usersRouter;

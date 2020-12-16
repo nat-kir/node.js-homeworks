@@ -23,6 +23,7 @@ class Server {
   initMiddlewares() {
     this.server.use(express.json());
     this.server.use(cors());
+    this.server.use(express.static("public"));
     this.server.use(morgan("dev"));
   }
 

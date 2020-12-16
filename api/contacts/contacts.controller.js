@@ -50,8 +50,8 @@ module.exports = class ContactsControllers {
       name: Joi.string().required(),
       email: Joi.string().required(),
       phone: Joi.string().required(),
-      subscription: Joi.string().optional(),
-      password: Joi.string().required(),
+      // subscription: Joi.string().optional(),
+      // password: Joi.string().required(),
     });
     const result = contactRules.validate(req.body);
     if (result.error) {
@@ -65,8 +65,8 @@ module.exports = class ContactsControllers {
       name: Joi.string().optional(),
       email: Joi.string().optional(),
       phone: Joi.string().optional(),
-      subscription: Joi.string().optional(),
-      password: Joi.string().optional(),
+      // subscription: Joi.string().optional(),
+      // password: Joi.string().optional(),
     }).min(1);
     const result = contactRules.validate(req.body);
     if (result.error) {
