@@ -4,7 +4,13 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const bcrypt = require("bcryptjs");
 const path = require("path");
-const { сreateAvatar, imageMinify, removeAvatar } = require("./users.helpers");
+const {
+  сreateAvatar,
+  imageMinify,
+  removeAvatar,
+  sendEmailToVerify,
+} = require("./users.helpers");
+const uuid = require("uuid");
 
 module.exports = class UsersControllers {
   static async registration(req, res, next) {
@@ -19,12 +25,17 @@ module.exports = class UsersControllers {
       await сreateAvatar(email);
       await imageMinify();
       await removeAvatar(`${email}.png`);
+      const verificationToken = uuid.v4();
 
       const user = await userModel.create({
         email,
         avatarURL: `http://localhost:${process.env.PORT}/images/${email}.png`,
         password: passwordHash,
+        verificationToken: verificationToken,
       });
+
+      await sendEmailToVerify(user.email, verificationToken);
+
       return res.status(201).json(user);
     } catch (err) {
       next(err);
@@ -33,8 +44,9 @@ module.exports = class UsersControllers {
 
   static async login(req, res, next) {
     try {
-      const { email, password } = req.body;
+      const { email, password, verified } = req.body;
       const user = await userModel.findOne({ email });
+      console.log(user);
       if (!user) {
         return res.status(401).send("No such email");
       }
@@ -42,6 +54,9 @@ module.exports = class UsersControllers {
 
       if (!passwordValidation) {
         return res.status(401).send("Password is incorrect, try again ");
+      }
+      if (!user.verified) {
+        return res.status(401).send("Your email is not verified");
       }
 
       const token = await jwt.sign(
@@ -178,6 +193,31 @@ module.exports = class UsersControllers {
         .json({ email: user.email, avatarURL: user.avatarURL });
     } catch (err) {
       next(err);
+    }
+  }
+
+  // Emailing and TokenVerificatioin
+
+  static async tokenVerification(req, res, next) {
+    try {
+      const { verificationToken } = req.params;
+      console.log(verificationToken);
+
+      const userToVerify = await userModel.findOne({ verificationToken });
+      if (!userToVerify) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      verificationToken;
+
+      await userModel.findByIdAndUpdate(
+        userToVerify._id,
+        { verified: true, verificationToken: null },
+        { new: true }
+      );
+
+      return res.status(200).send("Your email confirmed");
+    } catch (error) {
+      next(error);
     }
   }
 };

@@ -8,6 +8,10 @@ usersRouter.post(
   UsersControllers.validateUser,
   UsersControllers.registration
 );
+usersRouter.get(
+  "/auth/verify/:verificationToken",
+  UsersControllers.tokenVerification
+);
 usersRouter.post(
   "/auth/login",
   UsersControllers.validateUser,

@@ -18,6 +18,7 @@ const userSchema = new Schema({
     type: String,
     required: [true, "Password is required"],
   },
+
   subscription: {
     type: String,
     enum: ["free", "pro", "premium"],
@@ -25,6 +26,16 @@ const userSchema = new Schema({
     default: "free",
   },
   token: { type: String, required: false, default: null },
+  verified: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+
+  verificationToken: {
+    type: String,
+    required: false,
+  },
 });
 
 const userModel = mongoose.model("user", userSchema);

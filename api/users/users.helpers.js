@@ -5,6 +5,10 @@ const imageminJpegtran = require("imagemin-jpegtran");
 const imageminPngquant = require("imagemin-pngquant");
 const fs = require("fs");
 const multer = require("multer");
+const sgMail = require("@sendgrid/mail");
+require("dotenv").config();
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 //multer
 const storage = multer.diskStorage({
@@ -44,4 +48,31 @@ async function removeAvatar(file) {
     if (err) throw err;
   });
 }
-module.exports = { upload, сreateAvatar, imageMinify, removeAvatar };
+
+// Meiling
+async function sendEmailToVerify(email, verificationToken) {
+  const msg = {
+    to: `${email}`,
+    from: "kiriunina.natalia@gmail.com",
+    subject: "Email confirmation",
+    text: "Please, confirm your email",
+    html: `<a href='http://localhost:${process.env.PORT}/users/auth/verify/${verificationToken}'>Click to verify your email</a>`,
+  };
+  // const result = await sgMail.send(msg);
+  // console.log(msg.html);
+  sgMail
+    .send(msg)
+    .then(() => {
+      console.log("Email sent");
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}
+module.exports = {
+  upload,
+  сreateAvatar,
+  imageMinify,
+  removeAvatar,
+  sendEmailToVerify,
+};
